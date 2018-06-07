@@ -26,7 +26,9 @@ setup(name='asynner',
       zip_safe=False,
       install_requires=[
           'cornice',
-          'waitress'
+          'waitress',
+          'uvicorn',
+          'asgiref'
       ],
       entry_points="""\
       [paste.app_factory]

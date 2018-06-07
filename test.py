@@ -4,18 +4,19 @@ import argparse
 from datetime import datetime
 
 
-def main(path='sequential', iterations=5):
+def main(url, path, iterations=5):
+    url = f'{url}/{path}'
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(make_requests(path, iterations))
+    loop.run_until_complete(make_requests(url, iterations))
 
 
-async def make_requests(path, iterations):
+async def make_requests(url, iterations):
     batch_start = datetime.now()
     async with aiohttp.ClientSession() as session:
         tasks = []
         for i in range(iterations):
             tasks.append(
-                asyncio.ensure_future(make_request(session, path))
+                asyncio.ensure_future(make_request(session, url))
             )
         await asyncio.gather(*tasks)
 
@@ -23,14 +24,16 @@ async def make_requests(path, iterations):
     print(f'Finished requests: {(batch_end - batch_start).total_seconds()}')
 
 
-async def make_request(session, path):
-    async with session.get(f'http://localhost:6544/{path}') as resp:
-        pass
+async def make_request(session, url):
+    async with session.get(url) as resp:
+        results = await resp.json()
+        # print('\n'.join([r['value'] for r in results['data']]))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--url', default='http://localhost:6544')
     parser.add_argument('-i', '--iterations', default=5, type=int)
     parser.add_argument('-p', '--path', default='sequential')
     args = parser.parse_args()
-    main(args.path, args.iterations)
+    main(args.url, args.path, args.iterations)

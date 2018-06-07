@@ -2,9 +2,11 @@ import asyncio
 import sys
 import logging
 import time
+import json
 from concurrent import futures
 from datetime import datetime
 from cornice import Service
+from asynner.asgi import websocket, http
 
 log = logging.getLogger(__name__)
 
@@ -62,12 +64,11 @@ def async_worker(request):
 
     running = [
         asyncio.run_coroutine_threadsafe(
-            external_async_fn(f'async-scoped-{id(request)}-{i}'),
+            external_async_fn(f'async-worker-{id(request)}-{i}'),
             loop=request.loop
         )
         for i in range(5)
     ]
-
     done, not_done = futures.wait(running, timeout=3)
     results = [ftr.result() for ftr in done]
 
@@ -76,28 +77,37 @@ def async_worker(request):
     return {'data': results}
 
 
-@get('/async-per-worker')
-def async_per_worker(request):
-    """
-    Run all "external" requests asynchronously in an existing event loop
-    attached to the web worker thread.
+@http('/async-view')
+async def asgi_view(scope, receive, send):
     """
 
+    :param scope:
+    :param receive:
+    :param send:
+    :return:
+    """
     start = datetime.now()
 
-    tasks = [
-        asyncio.ensure_future(
-            external_async_fn(f'async-scoped-{id(request)}-{i}')
-        )
-        for i in range(5)
+    running = [
+        external_async_fn(f'async-view-{i}') for i in range(5)
     ]
-    future = asyncio.gather(*tasks)
-    # TODO: how to wait for these to be complete
-    results = []
+    results = await asyncio.gather(*running)
 
     end = datetime.now()
-    log.info(f'Finished request: {(end - start).total_seconds()}')
-    return {'data': results}
+
+    await send(json.dumps({'data': results}))
+
+
+@websocket('/ws')
+async def asgi_ws(scope, receive, send):
+    while True:
+        message = await receive()
+        if message['type'] == 'websocket.connect':
+            await send({'type': 'websocket.accept'})
+        if message['type'] == 'websocket.receive':
+            message_text = message.get('text')
+            log.info(f'Received: {message_text}')
+            await send({'type': 'websocket.send', 'text': f'Pong: {message_text}'})
 
 
 def external_fn(value, wait_time=1.0):
