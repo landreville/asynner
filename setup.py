@@ -26,7 +26,6 @@ setup(name='asynner',
       zip_safe=False,
       install_requires=[
           'cornice',
-          'waitress',
           'uvicorn',
           'asgiref'
       ],
