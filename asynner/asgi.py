@@ -29,21 +29,27 @@ class AsgiWrapper(object):
         return self._protocol_class(self._wrapped, scope)
 
 
-class AsgiWebsocket(object):
+class AsgiApp(object):
 
     def __init__(self, fn, scope):
         self._fn = fn
         self._scope = scope
 
     def __call__(self, receive, send):
-        return self._fn(receive, send)
+        # TODO: pass new "channel" class instead of these three variables
+        return self._fn(self._scope, receive, send)
 
 
-class AsgiView(object):
+class AsgiWebsocket(AsgiApp):
 
-    def __init__(self, fn, scope):
-        self._fn = fn
-        self._scope = scope
+    def __call__(self, receive, send):
+        return self._fn(self._scope, receive, send)
+
+
+class AsgiView(AsgiApp):
+
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
         self._headers_sent = False
 
     def __call__(self, receive, send):

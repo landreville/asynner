@@ -80,11 +80,7 @@ def async_worker(request):
 @http('/async-view')
 async def asgi_view(scope, receive, send):
     """
-
-    :param scope:
-    :param receive:
-    :param send:
-    :return:
+    Fully asynchronous view.
     """
     start = datetime.now()
 
