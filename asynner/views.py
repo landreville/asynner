@@ -6,7 +6,7 @@ import json
 from concurrent import futures
 from datetime import datetime
 from cornice import Service
-from asynner.asgi import websocket, http
+from asynner.rbow import asgi_view
 
 log = logging.getLogger(__name__)
 
@@ -77,11 +77,8 @@ def async_worker(request):
     return {'data': results}
 
 
-@http('/async-view')
-async def asgi_view(scope, receive, send):
-    """
-    Fully asynchronous view.
-    """
+@asgi_view('/async-view')
+async def asgi_async_view(conn):
     start = datetime.now()
 
     running = [
@@ -91,19 +88,19 @@ async def asgi_view(scope, receive, send):
 
     end = datetime.now()
 
-    await send(json.dumps({'data': results}))
+    await conn.send(json.dumps({'data': results}))
 
 
-@websocket('/ws')
-async def asgi_ws(scope, receive, send):
+@asgi_view('/ws', protocol='websocket')
+async def asgi_ws_view(conn):
     while True:
-        message = await receive()
+        message = await conn.receive()
         if message['type'] == 'websocket.connect':
-            await send({'type': 'websocket.accept'})
+            await conn.send({'type': 'websocket.accept'})
         if message['type'] == 'websocket.receive':
             message_text = message.get('text')
             log.info(f'Received: {message_text}')
-            await send({'type': 'websocket.send', 'text': f'Pong: {message_text}'})
+            await conn.send({'type': 'websocket.send', 'text': f'Pong: {message_text}'})
 
 
 def external_fn(value, wait_time=1.0):
