@@ -7,6 +7,7 @@ from concurrent import futures
 from datetime import datetime
 from cornice import Service
 from asynner.rbow import asgi_view
+from asynner import ftrcompat
 
 log = logging.getLogger(__name__)
 
@@ -70,6 +71,29 @@ def async_worker(request):
         for i in range(5)
     ]
     done, not_done = futures.wait(running, timeout=3)
+    results = [ftr.result() for ftr in done]
+
+    end = datetime.now()
+    log.info(f'Finished request: {(end - start).total_seconds()}')
+    return {'data': results}
+
+
+@get('/async-per-worker')
+def async_per_worker(request):
+    """
+    Run all "external" requests asynchronously in an existing event loop
+    that is created in each thread processing requests.
+    """
+    start = datetime.now()
+    
+    asyncio.get_event_loop()
+
+    running = [
+        external_async_fn(f'async-worker-{id(request)}-{i}')
+        for i in range(5)
+    ]
+    
+    done, not_done = ftrcompat.wait(running, timeout=3)
     results = [ftr.result() for ftr in done]
 
     end = datetime.now()
