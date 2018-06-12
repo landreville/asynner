@@ -7,7 +7,7 @@ from concurrent import futures
 from datetime import datetime
 from cornice import Service
 from asynner.rbow import asgi_view
-from asynner import ftrcompat
+from asynner import sasync
 
 log = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ def async_per_worker(request):
         for i in range(5)
     ]
     
-    done, not_done = ftrcompat.wait(running, timeout=3)
+    done, not_done = sasync.wait(running, timeout=3)
     results = [ftr.result() for ftr in done]
 
     end = datetime.now()
