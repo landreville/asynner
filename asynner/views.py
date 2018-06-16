@@ -87,8 +87,6 @@ def async_per_worker(request):
     that is created in each thread processing requests.
     """
     start = datetime.now()
-    
-    asyncio.get_event_loop()
 
     running = [
         external_async_fn(f'async-worker-{id(request)}-{i}')
@@ -96,6 +94,8 @@ def async_per_worker(request):
     ]
     
     done, not_done = sasync.wait(running, timeout=3)
+    log.debug(f'Done: {done}')
+    log.debug(f'Not done: {not_done}')
     results = [ftr.result() for ftr in done]
 
     end = datetime.now()

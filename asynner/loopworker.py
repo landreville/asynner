@@ -51,7 +51,7 @@ def includeme(config):
     )
 
 
-def run_awaitable(request, coroutine: Awaitable, timeout=3: int):
+def run_awaitable(request, coroutine: Awaitable, timeout: int = 3):
     """
     Run a single awaitable and block until results are available or
     `timeout` seconds passes.

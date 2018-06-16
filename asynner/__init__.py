@@ -11,4 +11,4 @@ def main():
         return config.make_asgi_app()
 
 
-app = main()
+application = main()

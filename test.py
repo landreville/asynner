@@ -34,7 +34,7 @@ async def make_request(session, url, print_responses):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Run concurrent requests to the app.')
     parser.add_argument('-u', '--url', default='http://localhost:6544')
-    parser.add_argument('-i', '--iterations', default=5, type=int)
+    parser.add_argument('-i', '--iterations', default=1, type=int)
     parser.add_argument('-p', '--path', default='sequential')
     parser.add_argument('--print', default=False, action='store_true')
     args = parser.parse_args()
