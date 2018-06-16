@@ -60,6 +60,8 @@ def async_worker(request):
     """
     Run all "external" requests asynchronously in an existing event loop that
     lives in a dedicated thread.
+    
+    Requires the loopworker plugin.
     """
     start = datetime.now()
 
@@ -103,6 +105,12 @@ def async_per_worker(request):
 
 @asgi_view('/async-view')
 async def asgi_async_view(conn):
+    """
+    Run all "external" requests asynchronously in a coroutine.
+    
+    This requires uvicorn and the functionality in rbow sub-package.
+    The request does not go through Pyramid.
+    """
     start = datetime.now()
 
     running = [
